@@ -406,6 +406,7 @@ def main():
         #multiplebullet damage error
         #autoquit error
         #clickquitrestartrunningerror
+        #BUG HERE ----
         if level == 6:
             player.move_lasers_to_boss(lasermovepixels, bossS)
             boss = Boss(100, 0)
