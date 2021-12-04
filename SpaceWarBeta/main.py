@@ -43,6 +43,11 @@ smallenemyship = pygame.transform.rotate(
     pygame.transform.scale(smallenemyship, (shipwidth, shipheight)), 180)
 
 explosion = pygame.image.load(os.path.join('Assets', "explosion.png"))
+exp1 = pygame.image.load(os.path.join('Assets', "exp1.png"))
+exp2 = pygame.image.load(os.path.join('Assets', "exp2.png"))
+exp3 = pygame.image.load(os.path.join('Assets', "exp3.png"))
+exp4 = pygame.image.load(os.path.join('Assets', "exp4.png"))
+exp5 = pygame.image.load(os.path.join('Assets', "exp5.png"))
 
 bosscat = pygame.image.load(os.path.join('Assets', 'bossneoncat.png'))
 bosscat = pygame.transform.scale(bosscat, (200, 200))
@@ -56,9 +61,6 @@ superlaser = pygame.image.load(os.path.join("Assets", "superbullet.png"))
 superlaser = pygame.transform.scale(superlaser, (350, 350))
 cloudy = pygame.image.load(os.path.join('Assets', 'cloudy.png'))
 angry = pygame.image.load(os.path.join('Assets', 'angry.png'))
-""">>>>>>>>>>>>>BACKGROUND<<<<<<<<<<<<<"""
-bg = pygame.image.load(os.path.join("Assets", "spacewar_background.jpeg"))
-bg = pygame.transform.scale(bg, (500, 600))
 #::::::::::::::::::SOUNDTRACKS:::::::::::::::::
 explosionsound = mixer.Sound(os.path.join("Assets/explosionsound.ogg"))
 gameoversound = mixer.Sound(os.path.join("Assets/gameoversound.ogg"))
@@ -202,7 +204,7 @@ class Player(Ship):
         self.mask = pygame.mask.from_surface(self.ship_img)
         self.max_health = health
         
-    def move_lasers(self, movepixels, objs):
+    def move_lasers(self, movepixels, objs, group):
         self.cooldown()
         for laser in self.lasers:
             laser.move(movepixels)
@@ -214,9 +216,11 @@ class Player(Ship):
                         explosionsound.play()
                         objs.remove(obj)
                         self.lasers.remove(laser)
+                        explosionn = Explosion(obj.x + 60, obj.y + 75, 2)
+                        group.add(explosionn)
                         break
 
-    def move_superlasers(self, movepixels, objs):
+    def move_superlasers(self, movepixels, objs, group):
         self.superlasercooldown()
         for superlaser in self.superlasers:
             superlaser.move(movepixels)
@@ -227,6 +231,8 @@ class Player(Ship):
                     if superlaser.collision(obj):
                         explosionsound.play()
                         objs.remove(obj)
+                        explosionn = Explosion(obj.x + 25, obj.y, 3)
+                        group.add(explosionn)
                         break
                     
     def move_lasers_to_boss(self, movepixels, objs):
@@ -240,7 +246,7 @@ class Player(Ship):
                     if laser.collision(obj):
                         self.lasers.remove(laser)
                         break
-
+            
     def draw(self, window):
         super().draw(window)
         self.healthbar(window)
@@ -248,7 +254,7 @@ class Player(Ship):
     def healthbar(self, window):
         pygame.draw.rect(window, (255,0,0), (self.x + 40, self.y + self.ship_img.get_height() - 40, (self.ship_img.get_width() - 84), 1), 5)
         pygame.draw.rect(window, (0,255,0), (self.x + 40, self.y + self.ship_img.get_height() - 40, (self.ship_img.get_width() - 84) * (self.health/self.max_health), 1), 5)
-
+        
     def death(self):
         explosionsound.play()
         self.ship_img = explosion 
@@ -267,13 +273,6 @@ class Enemy(Ship):
 
     def move(self, enemymovepixels):
         self.y += enemymovepixels
-
-    def death(self):
-        explosionsound.play()
-        self.ship_img = explosion 
-        if random.randrange(0, 1) == 1:
-            self.remove(self)
-        pygame.display.update()
 
 class Boss(Ship):
     def __init__(self, x, y, health=1000):
@@ -306,11 +305,50 @@ class Boss(Ship):
             self.bossshoot()
         if self.health <= 0:
             self.dead = True
-            
+        
     def draw(self, window):
         super().draw(window)
-                
+        
+class Explosion(pygame.sprite.Sprite):
+    def __init__(self, x, y, stage):
+        pygame.sprite.Sprite.__init__(self)
+        self.x = x
+        self.y = y
+        self.images = []
+        for i in range(1, 6):
+            img = pygame.image.load(os.path.join("Assets", f"exp{i}.png"))
+            if stage == 1:
+                img = pygame.transform.scale(img, (20, 20))
+            if stage == 2:
+                img = pygame.transform.scale(img, (40, 40))
+            if stage == 3:
+                img = pygame.transform.scale(img, (120, 120))
+            self.images.append(img)
+        self.counter = 0
+        self.index = 0
+        self.image = self.images[self.index]
+        self.rect = self.image.get_rect()
+        self.rect.center = [x, y]
+        
+    def update(self):
+        expspeed = 3
+        self.counter += 1
+        
+        if self.counter >= expspeed and self.index < len(self.images) - 1:
+            self.counter = 0
+            self.index += 1
+            self.image = self.images[self.index]
+            
+        if self.index >= len(self.images) - 1 and self.counter >= expspeed:
+            self.kill()
+            
+    def draw(self):
+        win.blit(self.image, (self.x, self.y))
+                       
 class Lifesaver:
+    pass
+
+class Kamehameha:
     pass
                               
 def collide(obj1, obj2):
@@ -319,14 +357,11 @@ def collide(obj1, obj2):
     return obj1.mask.overlap(obj2.mask, (offset_x, offset_y)) != None
 
 def main():
-    pygame.init()
-    pygame.font.init()
-    mixer.init()
     score = 0
     win = pygame.display.set_mode((Width, Height))
-    FPS = 100
+    FPS = 200
     lives = 5
-    level = 0
+    level = 5
     clock = pygame.time.Clock()
     run = True
     main_font = pygame.font.Font("Assets/PixelOperator.ttf", 50)
@@ -339,10 +374,14 @@ def main():
     lost = False
     lost_count = 0
     winning_count = 0
-    lasermovepixels = 10
+    lasermovepixels = 15
+    bgvel = -400
+    bgvel2 = -400
+    bgvel3 = -400
     superlasermovepixels = 15
     bossmovepixels = 0.3
     player = Player(180, 480)
+    explosion_group = pygame.sprite.Group()
     winning = False
     
     #MUSIC
@@ -352,7 +391,6 @@ def main():
 
 
     def redraw_window():
-        win.blit(bg, (0, 0))
 
         # draw texts>>>>>>>>>>>>>>>>>>>>>>>>>
         lives_label = main_font.render(f"Lives: {lives}", 0, (222, 255, 1))
@@ -374,8 +412,18 @@ def main():
         win.blit(scorelabel, (0, 0))
         # ======================================
 
+        if level == 6:
+            boss = Boss(0, 200)
+            boss.draw(win)
+            boss.AI(player, bossmovepixels, player.lasers)
+    
         for enemy in enemies:
             enemy.draw(win)
+            
+        explosion_group.update()
+
+        for obj in explosion_group:
+            obj.draw()
 
         player.draw(win)
 
@@ -402,11 +450,15 @@ def main():
             win.blit(smallwinning, (Width/2-smallwinning.get_width()/2, Height/2 + 50))
   
 
-        if random.randrange(0, 300) == 1:
+        if random.randrange(0, 150) == 1:
             if level < 6:
                 if len(enemies) == 0:
                     alarmsound.play()
                     level += 1
+                    if level == 3:
+                        bgvel = -600
+                    elif level == 5:
+                        bgvel = -400
                     wave_length += 5
                     for i in range(wave_length):
                         if level > 5:
@@ -415,26 +467,8 @@ def main():
                         enemies.append(enemy)
             elif len(enemies) == 0 and level == 5:
                 level += 1
+
         
-        #level auto goes to 7 error
-        #multiple boss error
-        #multiplebullet damage error
-        #autoquit error
-        #clickquitrestartrunningerror
-        if (level == 6) == 1:
-            player.move_lasers_to_boss(lasermovepixels, bossS)
-            for i in range(1):
-                boss = Boss(100, 0)
-                bossS.append(boss)
-            print("Bossclass Debugging help:", [bossS])
-            for cat in bossS:
-                cat.draw(win)
-                if cat.dead:
-                    bossS.remove(boss)
-                boss.AI(player, bossmovepixels, player.lasers)
-
-            pygame.display.update()
-
         if lost:
             player = pygame.image.load(os.path.join("Assets", "explosion.png"))
             if level < 3:
@@ -447,7 +481,7 @@ def main():
                 lost_label = main_font.render("!play belupacito", 0, (255, 255, 255, 0.1))
                 win.blit(lost_label, (Width/2 - lost_label.get_width() / 2, Height/2 - lost_label.get_height()/2))                          
         pygame.display.update()
-
+        
         if lost:
             if lost_count > FPS * 3:
                 run = False
@@ -460,7 +494,7 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
-      
+
         """   THOSE ARE KEYS"""
         keys = pygame.key.get_pressed()
         if keys[pygame.K_a] and player.x + 50 > 0:  # left
@@ -489,49 +523,30 @@ def main():
                     player.health -= 50
                     break 
                 
-            if random.randrange(0, 2*60) == 1:
+            if random.randrange(0, 60*4) == 1:
                 enemy.shoot()
 
             if enemy.y + enemy.get_height() > Height:
-                deathcount = 5
-                if deathcount > 5:
-                    enemies.remove(enemy)
+                enemies.remove(enemy)
                 lives -= 1
-                enemy = explosion
-                for i in range(5):
-                    deathcount += 1
-        
-        for enemy in enemies[:]:
-            for laser in player.lasers:
-                if collide(enemy, laser):
-                    score += 1
-                    count = 0
-                    if count > 10:
-                        enemies.remove(enemy)
-                    for i in range(10):
-                        count += 1
-                    enemy = explosion
-                    break
-            
-            for superlaser in player.superlasers:
-                if collide(enemy, superlaser):
-                    score += 5 
-                    break  
-                
-                                              
-        player.move_lasers(-lasermovepixels, enemies)
-        player.move_superlasers(-superlasermovepixels, enemies)
+                          
+        player.move_lasers(-lasermovepixels, enemies, explosion_group)
+        player.move_superlasers(-superlasermovepixels, enemies, explosion_group)
 
 #        BACKGROUND TRANSFORMER--------------->
 
         if level == 3 or level == 4:
             bg = pygame.image.load(os.path.join("Assets", "lvl3space.jpeg"))
+            bg = pygame.transform.scale(bg, (3000, 3000))
+            win.blit(bg, (-230, bgvel))
         elif level >= 5:
             bg = pygame.image.load(os.path.join("Assets", "lvl5 neon.jpeg"))
-            bg = pygame.transform.scale(bg, (500, 600))
-        else:
+            bg = pygame.transform.scale(bg, (1000, 1000))
+            win.blit(bg, (-230, bgvel))
+        elif level < 3:
             bg = pygame.image.load(os.path.join("Assets", "spacewar_background.jpeg"))
-            bg = pygame.transform.scale(bg, (500, 600))
+            bg = pygame.transform.scale(bg, (1000, 1000))
+            win.blit(bg, (-230, bgvel))
 
         if lives <= 0 or player.health <= 0:
             player.death()
@@ -543,9 +558,22 @@ def main():
                 
         if level > 6:
             winning = True
-            winning_count += 1
-       
+            winning_count += 1  
+        
+        bgvel += 0.5
+        
+        if level == 6:
+            bg = pygame.image.load(os.path.join("Assets", "bossfightpng.jpeg"))
+            count = 1
+            count += 1
+            win.blit(bg, (-230, bgvel))
+            if count < 100:
+                bossfightlabel = main_font.render("Boss warning", 50, (255, 10, 0))
+                win.blit(bossfightlabel, (Width/2-bossfightlabel.get_width()/3, Height/2))
+  
         redraw_window()
+        
+        pygame.display.update()
 
     pygame.quit()
         
@@ -560,7 +588,6 @@ def main_menu():
     undertitlefont = pygame.font.Font("Assets/PixelOperator.ttf", 20)
     run = True
     while run:
-        win.blit(bg, (0, 0))
         title_label = title_font.render("Space War Beta", 0, (245, 71, 195))
         undertitlelabel = undertitlefont.render("Press space for shoot, R for superlaser, WASD for move.", 0, (61, 222, 255))
         win.blit(undertitlelabel, (Width/2 - undertitlelabel.get_width() / 2, 340))
@@ -569,8 +596,6 @@ def main_menu():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
-        #if playbuttonbutton1.click():
-            #main()
             if event.type == MOUSEBUTTONDOWN:
                 main()
                 
