@@ -8,8 +8,13 @@ import time
 import playsound
 from pygame import error, mixer
 from threading import Event
+from Particles import NyanParticles
+from Particles import rocketParticles
 
+#============TO DO LIST=============
+#1.Lifesaver spawn
 # ATTENTION! Define function all arguments should be given in funtion created, or ex:   TypeErroe: function takes exactly 2 arguments(1 given)
+#NyanCat     ANIMATION      SHOOT
 """initializing_"""
 pygame.init()
 mixer.init()
@@ -25,10 +30,6 @@ bigshipwidth = 250
 bigshipwidth = 250
 
 """============PLAYER======================"""
-#playerfront = pygame.image.load(os.path.join('Assets', "player.png"))
-#playerback = pygame.image.load(os.path.join('Assets', 'playerback.png'))
-#playerright = pygame.image.load(os.path.join('Assets', 'playerright.png'))
-#playerleft = pygame.image.load(os.path.join('Assets', 'playerleft.png'))
 player = pygame.image.load(os.path.join('Assets', "player.png"))
 player = pygame.transform.scale(player, (shipwidth, shipheight))
 
@@ -49,8 +50,6 @@ exp3 = pygame.image.load(os.path.join('Assets', "exp3.png"))
 exp4 = pygame.image.load(os.path.join('Assets', "exp4.png"))
 exp5 = pygame.image.load(os.path.join('Assets', "exp5.png"))
 
-bosscat = pygame.image.load(os.path.join('Assets', 'bossneoncat.png'))
-bosscat = pygame.transform.scale(bosscat, (200, 200))
 lifesaver = pygame.image.load(os.path.join('Assets', "lifesaver.png"))
 lifesaver = pygame.transform.scale(lifesaver, (50, 50))
 
@@ -61,6 +60,7 @@ superlaser = pygame.image.load(os.path.join("Assets", "superbullet.png"))
 superlaser = pygame.transform.scale(superlaser, (350, 350))
 cloudy = pygame.image.load(os.path.join('Assets', 'cloudy.png'))
 angry = pygame.image.load(os.path.join('Assets', 'angry.png'))
+nyandoom = pygame.image.load(os.path.join('Assets', 'nyandoom.png'))
 #::::::::::::::::::SOUNDTRACKS:::::::::::::::::
 explosionsound = mixer.Sound(os.path.join("Assets/explosionsound.ogg"))
 gameoversound = mixer.Sound(os.path.join("Assets/gameoversound.ogg"))
@@ -84,6 +84,9 @@ class Laser:
 
     def off_screen(self, height):
         return not(self.y <= height and self.y + 30 >= 0)
+    
+    def pentaoff_screen(self, height):
+        return not(self.y + 50 <= height and self.y + 30 >= 0)
 
     def move(self, movepixels):
         self.y += movepixels
@@ -123,6 +126,7 @@ class Ship:
         self.superlaser_img = superlaser
         self.lasers = []
         self.superlasers = []
+        self.doombullets = []
         self.cool_down_counter = 0
         self.super_laser_cooldown = 0
 
@@ -254,6 +258,9 @@ class Player(Ship):
     def healthbar(self, window):
         pygame.draw.rect(window, (255,0,0), (self.x + 40, self.y + self.ship_img.get_height() - 40, (self.ship_img.get_width() - 84), 1), 5)
         pygame.draw.rect(window, (0,255,0), (self.x + 40, self.y + self.ship_img.get_height() - 40, (self.ship_img.get_width() - 84) * (self.health/self.max_health), 1), 5)
+        main_font = pygame.font.Font("Assets/PixelOperator.ttf", 20)
+        healthlabel = main_font.render(f"{self.health}/{self.max_health}", 0, (255, 255, 255))
+        win.blit(healthlabel, (self.x + 43, self.y + 110))
         
     def death(self):
         explosionsound.play()
@@ -274,39 +281,136 @@ class Enemy(Ship):
     def move(self, enemymovepixels):
         self.y += enemymovepixels
 
+class DoomBullet:
+    def __init__(self, x, y, img):
+        self.x = x
+        self.y = y 
+        self.img = pygame.transform.scale(nyandoom, (200, 200))
+        self.mask = pygame.mask.from_surface(self.img)
+
+    def draw(self, window):
+        window.blit(self.img, (self.x, self.y))
+
+    def off_screen(self, height):
+        return not(self.y + self.img.get_height() <= height and self.y + 30 >= 0)
+
 class Boss(Ship):
+    PENTACOOLDOWN = 5
+    PENTASUPERCOOLDOWN = 300
     def __init__(self, x, y, health=1000):
         super().__init__(x, y, health)
-        self.ship_img = bosscat
-        self.laser_img = cloudy, angry
+        self.ship_imgs = []
+        self.index = 0
+        for i in range(1, 6):
+            img = pygame.image.load(os.path.join("Assets", f"tile00{i}.png"))
+            img = pygame.transform.scale(img, (img.get_width()*2, img.get_height()*2))
+            self.ship_imgs.append(img)
+        self.ship_img = self.ship_imgs[self.index]
+        self.laser_imgC = cloudy
+        self.laser_imgA = angry
+        self.nyandoom = nyandoom
         self.mask = pygame.mask.from_surface(self.ship_img)
         self.max_health = 1000
         self.c = 0
         self.cool_down_counter = 0
-        
+        self.nyacounter = 0
+        self.pentavel = self.x - 20
+        self.pentavel2 = self.x + 210
+        self.laserchoice = self.laser_imgA
+        self.pentasupercooldowncounter = 1
+        self.nyac = 0
+    
+    def pentasupercooldown(self):
+        if self.pentasupercooldowncounter == self.PENTASUPERCOOLDOWN:
+            self.pentasupercooldowncounter = 0
+        if self.pentasupercooldowncounter > 0:
+            self.pentasupercooldowncounter += 1
+
     def pentashoot(self):
-        lasersound.play()
         if self.cool_down_counter == 0:
-            laser = Laser((random.randint(0, 400)), self.y, self.laser_img)
+            laser = Laser(self.pentavel, self.y + self.get_height()-30, self.laserchoice)
+            laser2 = Laser(self.pentavel2, self.y + self.get_height()-30, self.laserchoice)
             self.lasers.append(laser)
+            self.lasers.append(laser2)
             self.cool_down_counter = 1
             
+    def pentasupershoot(self):
+        if self.pentasupercooldowncounter == 0:
+            doom = DoomBullet(self.x + 60, self.y + self.get_height()-30, self.nyandoom)
+            self.doombullets.append(doom)
+            self.pentasupercooldowncounter = 1
+    
+    def pentasupermove(self, obj, group):
+        self.pentasupercooldown()
+        for doombullet in self.doombullets:
+            doombullet.y += 4
+            if doombullet.off_screen(Height):
+                self.doombullets.remove(doombullet)
+            else:
+                if collide(doombullet, obj):
+                    obj.health -= 100
+                    explo = Explosion(obj.x, obj.y, 3)
+                    group.add(explo)
+                    break
+    
+    def nyancatclonesshootkamehameha(self):
+        pass
+            
+    def pentacooldown(self):
+        if self.cool_down_counter == self.PENTACOOLDOWN:
+            self.cool_down_counter = 0            
+        elif self.cool_down_counter > 0:
+            self.cool_down_counter += 1
+
     def pentamove(self, movepixels, obj, group):
-        self.cooldown()
+        self.pentacooldown()
         for laser in self.lasers:
             laser.move(movepixels)
-            if laser.off_screen(Height):
+            if laser.pentaoff_screen(Height):
                 self.lasers.remove(laser)
             else:
                 if laser.collision(obj):                      
                     explosionsound.play()
-                    obj.health -= 15
+                    if laser.img == self.laser_imgC:
+                        obj.health -= 15
+                    if laser.img == self.laser_imgA:
+                        obj.health -= 20
                     self.lasers.remove(laser)
-                    explosionn = Explosion(obj.x + 60, obj.y + 75, 2)
+                    explosionn = Explosion(laser.x + 5, laser.y + 30, 2)
                     group.add(explosionn)
                     break
+                
+    def update(self):
+        nyaspeed = 3
+        self.nyacounter += 1
+      
+        if self.index >= len(self.ship_imgs) - 1 and self.nyacounter >= nyaspeed:
+            self.index = 0
 
-    def AI(self, obj, movepixels, objs):           
+        if self.nyacounter >= nyaspeed and self.index < len(self.ship_imgs) - 1:
+            self.nyacounter = 0
+            self.index += 1
+            self.ship_img = self.ship_imgs[self.index]
+
+    def AI(self, obj, movepixels, objs):
+        if self.c % 20 != 0:
+            self.laserchoice = self.laser_imgC
+        else:
+            self.laserchoice = self.laser_imgA
+        
+        if self.c % 3 == 0:
+            self.nyac += 1
+        
+        nyanya = "nya"
+
+        if self.nyac >= len(nyanya):
+            self.nyac = 0
+  
+        if self.c % 10 != 0:
+            main_font = pygame.font.Font(os.path.join("Assets/PixelOperator.ttf"), 50)
+            nyachat = main_font.render((nyanya.replace(nyanya[self.nyac], "_")), 0, (255, 255, 255))
+            win.blit(nyachat, (self.x + 130, self.y - 30))
+           
         if self.x + self.get_width() >= Width:
             self.x -= 30
             
@@ -316,11 +420,25 @@ class Boss(Ship):
         self.c += 1
         if self.c % 2 == 0:
             self.y += movepixels
+        
+        #PENTASHOOT
+        if self.pentavel2 > self.x - 10:
+            self.pentavel2 -= 2
+            
+        if self.pentavel2 <= self.x - 10:
+            self.pentavel2 = self.x + 210
 
-        for thing in objs:
-            if collide(self, thing):
-                self.x += random.randint(-30, 30)
-                break
+        if self.pentavel < self.x + 210:
+            self.pentavel += 2
+
+        if self.pentavel >= self.x + 210:
+            self.pentavel = self.x - 10
+
+        if self.c % 50 == 0:
+            self.pentavel = random.randint(self.x - 10, self.x + 210)
+            self.pentavel2 = random.randint(self.x - 10, self.x + 210)
+            
+        #end of pentashoot codes
 
         if collide(self, obj):
             self.health -= 50
@@ -331,9 +449,11 @@ class Boss(Ship):
         pygame.draw.rect(window, (0,255,0), (self.x + 40, self.y + self.ship_img.get_height() - 40, (self.ship_img.get_width() - 84) * (self.health/self.max_health), 1), 5)
         
     def draw(self, window):
-        super().draw(window)
+        window.blit(self.ship_img, (self.x, self.y))
         for laser in self.lasers:
             laser.draw(window)
+        for doombullet in self.doombullets:
+            doombullet.draw(window)
         
 class Explosion(pygame.sprite.Sprite):
     def __init__(self, x, y, stage):
@@ -382,16 +502,9 @@ class Lifesaver:
         
     def draw(self):
         win.blit(self.img, (self.x, self.y)) 
-
-class Kamehameha:
-    def __init__(self, x, y, wid):
-        self.x = x
-        self.y = y
-        self.wid = wid
-        self.rect = self.get_rect()
-
-    def spawnk(self):
-        pygame.draw.rect()
+        
+class Shield:
+    pass
                               
 def collide(obj1, obj2):
     offset_x = obj2.x - obj1.x
@@ -427,23 +540,24 @@ def main():
     player = Player(180, 480)
     explosion_group = pygame.sprite.Group()
     bsp_c = 0
+    pentasupercter = 0
     ls_spawn = True
-    lsnum = 0
+    ls_sp_counter5 = 0
+    ls_sp_counter6 = 0
     bossbeated = False
     
-    #MUSIC
+    #MUSIC_______-----------____________-----------___________---------->
+    
     mixer.music.load(os.path.join("Assets/skyhighncs.mp3"))
-    mixer.music.set_volume(1)   
+    mixer.music.set_volume(1)
     mixer.music.play(-1)
 
     if level == 6:
         for i in range(2):
             alarmsound.play()
+            
 
-    def redraw_window(lsspawn, lsnum):
-        
-        lsvel = 0
-        lsvel += 1
+    def redraw_window(lsspawn, pentasupercter):
 
         # draw texts>>>>>>>>>>>>>>>>>>>>>>>>>
         lives_label = main_font.render(f"Lives: {lives}", 0, (222, 255, 1))
@@ -463,15 +577,15 @@ def main():
         win.blit(level_label, (player.x + 100, player.y + 50))
         win.blit(versionlabel, (0, 570))
         win.blit(scorelabel, (0, 0))
-        spawnnumber = 0
         # ======================================
 
         if level == 6:
             if bsp_c >= 60:
-                if len(bossS) == 0 and lives != 0 and winning != True and lsnum == 0:
-                    boss = Boss(160, -200)
+                if len(bossS) == 0 and lives != 0 and winning != True:
+                    mixer.music.load(os.path.join("Assets/nyanya.mp3"))
+                    mixer.music.play(-1)
+                    boss = Boss(130, -200)
                     bossS.append(boss)
-                    lsnum = 1
 
         if level == 5:
             if player.health <= 30:
@@ -481,9 +595,8 @@ def main():
 
         if level == 6:
             if player.health <= 20:
-                lsspawn = True
                 if len(lifesavers) == 0 and lsspawn == True:
-                    lifesaver = Lifesaver(random.randint(0, 400), random.randint(0, 400))
+                    lifesaver = Lifesaver(random.randint(0, 400), 0)
                     lifesavers.append(lifesaver)
 
         for ls in lifesavers:    
@@ -496,17 +609,23 @@ def main():
             obj.y += 3
             if obj.y + 40 >= Height:
                 lifesavers.remove(obj)
-
+        
+        player.draw(win)
+        
         for item in bossS:
             item.draw(win)
+            item.update()
             item.AI(player, bossmovepixels, player.lasers)
             for laser in player.lasers:
                 if collide(item, laser):
                     item.x += random.randint(-30, 30)
             item.healthbar(win)
-            item.pentashoot
-            item.pentamove(lasermovepixels, player, explosion_group)
-
+            item.pentashoot()
+            item.pentamove(10, player, explosion_group)
+            item.pentasupermove(player, explosion_group)
+            if pentasupercter % 300 == 0:
+                item.pentasupershoot()
+            
         for enemy in enemies:
             enemy.draw(win)
 
@@ -515,15 +634,13 @@ def main():
         for obj in explosion_group:
             obj.draw()
 
-        player.draw(win)
-
         pygame.display.update()
         
-#===============RUN==============
+#===============RUN====================RUN=========================RUN====================
 
     while run:
         clock.tick(FPS)
-
+    
         if random.randrange(0, 80) == 1:
             if level < 6:
                 if len(enemies) == 0:
@@ -571,6 +688,22 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
+                
+        if level == 5:
+            ls_sp_counter5 += 1
+            if ls_sp_counter5 >= 0 + Height/3:
+                ls_spawn = False
+                    
+        if level == 6:
+            ls_sp_counter6 += 1
+            if ls_sp_counter6 >= 0 + Height/3:
+                ls_spawn = False
+            else:
+                ls_spawn = True
+        
+        if level == 6:
+            if len(bossS) == 1:
+                pentasupercter += 1
 
         """   THOSE ARE KEYS"""
         keys = pygame.key.get_pressed()
@@ -593,8 +726,9 @@ def main():
             enemy.move_lasers(lasermovepixels, player)
             
             if collide(player, enemy):
-                explosionsound.play
-                enemy.ship_img = explosion
+                explosionsound.play()
+                PEexplo = Explosion(enemy.x + 60, enemy.y + 75, 2)
+                explosion_group.add(PEexplo)
                 enemies.remove(enemy)
                 for i in range(1):
                     player.health -= 50
@@ -638,7 +772,7 @@ def main():
         
         if level == 6:
             bsp_c += 1
-            if len(bossS) == 0 and bossbeated == False:
+            if len(bossS) == 0 and bossbeated == False and lives != 0:
                 bosswarning = main_font.render("---->BOSS WARNING<----", 0, (255, 0, 0))
                 warningc += 1
                 if warningc % 15 != 0:
@@ -651,7 +785,7 @@ def main():
             win.blit(winninglabel, (Width/2-winninglabel.get_width()/2, Height/2))
             win.blit(smallwinning, (Width/2-smallwinning.get_width()/2, Height/2 + 50))
      
-        redraw_window(ls_spawn, lsnum)
+        redraw_window(ls_spawn, pentasupercter)
 
         player.move_lasers(-lasermovepixels, enemies, explosion_group, bossS)
         player.move_superlasers(-superlasermovepixels, enemies, explosion_group, bossS)
@@ -699,21 +833,49 @@ def main():
     pygame.quit()
         
 main_font = pygame.font.Font('Assets/PixelOperator.ttf', 30)
-#playbuttonbutton = Button()
 
+def logo(c):
+    cyberfont = pygame.font.Font("Assets/Cynatar.ttf", 50)
+    creatorlabel = cyberfont.render("By TommyYOyoyo", 50, (255, 255, 255))
+    creatorlabel.set_alpha(c)
+    win.blit(creatorlabel, (Width/2-creatorlabel.get_width()/2, Height/2))
+    
 def main_menu():
     pygame.init()
     mixer.init()
     pygame.font.init()
+    c = 255
     title_font = pygame.font.Font("Assets/Prototype.ttf", 50)
     undertitlefont = pygame.font.Font("Assets/PixelOperator.ttf", 20)
     run = True
+    counter = 0
+    titlex = 0
+    titley = Width/2
+    undertitlex = Width/2 - 200
+    undertitley = Height
+    titlesolid = False
+    undertitlesolid = False
     while run:
+        c -= 0.5
+        counter += 1
         win.fill('black')
-        title_label = title_font.render("Space War Beta", 0, (245, 71, 195))
-        undertitlelabel = undertitlefont.render("Press space for shoot, R for superlaser, WASD for move.", 0, (61, 222, 255))
-        win.blit(undertitlelabel, (Width/2 - undertitlelabel.get_width() / 2, 340))
-        win.blit(title_label, (Width/2 - title_label.get_width() / 2, 260))
+        if counter <= 500:
+            logo(c)
+        if counter >= 500:
+            title_label = title_font.render("Space War Beta", 100, (245, 71, 195))
+            undertitlelabel = undertitlefont.render("Press space for shoot, R for superlaser, WASD for move.", 0, (61, 222, 255))
+            win.blit(undertitlelabel, (undertitlex, undertitley))
+            win.blit(title_label, (titlex, titley))
+            if titlex == Width/2 - undertitlelabel.get_width()/2 + 30:
+                titlex = titlex
+                titlesolid = True
+            if undertitley == 340:
+                undertitley = undertitley
+                undertitlesolid = True
+            if titlesolid != True:
+                titlex += 1
+            if undertitlesolid != True:
+                undertitley -= 2
         pygame.display.update()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -723,6 +885,9 @@ def main_menu():
                 
     pygame.quit()
 
-main_menu()
+try:
+    main_menu()
 
-main()
+    main()
+except pygame.error:
+    print("GAME QUIT")
