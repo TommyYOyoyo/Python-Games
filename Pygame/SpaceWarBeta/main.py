@@ -8,13 +8,7 @@ import time
 import playsound
 from pygame import error, mixer
 from threading import Event
-from Particles import NyanParticles
-from Particles import rocketParticles
 
-#============TO DO LIST=============
-#1.Lifesaver spawn
-# ATTENTION! Define function all arguments should be given in funtion created, or ex:   TypeErroe: function takes exactly 2 arguments(1 given)
-#NyanCat     ANIMATION      SHOOT
 """initializing_"""
 pygame.init()
 mixer.init()
@@ -352,9 +346,6 @@ class Boss(Ship):
                     explo = Explosion(obj.x, obj.y, 3)
                     group.add(explo)
                     break
-    
-    def nyancatclonesshootkamehameha(self):
-        pass
             
     def pentacooldown(self):
         if self.cool_down_counter == self.PENTACOOLDOWN:
@@ -502,9 +493,6 @@ class Lifesaver:
         
     def draw(self):
         win.blit(self.img, (self.x, self.y)) 
-        
-class Shield:
-    pass
                               
 def collide(obj1, obj2):
     offset_x = obj2.x - obj1.x
