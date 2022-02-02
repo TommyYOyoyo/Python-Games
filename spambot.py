@@ -4,6 +4,8 @@ from subprocess import CompletedProcess
 import pyautogui
 import time
 
+pyautogui.PAUSE = 0.01
+
 def Register_AutoSpamInfo():
     while True:
         spamfile = open("spamtext.txt", "w")
