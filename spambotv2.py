@@ -4,6 +4,8 @@ from subprocess import CompletedProcess
 import pyautogui
 import time
 
+pyautogui.PAUSE = 0.01
+
 def Register_AutoSpamInfo():
     print("Welcome to AutospammerV2(LITE), for fun only. Use at your risks.")
     time.sleep(0.5)
