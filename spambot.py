@@ -7,7 +7,7 @@ time.sleep(0.5)
 
 def Register_AutoSpamInfo():
     while True:
-        spamfile = open("/Users/lizhu/Tommy/Programming/Python/Other/spamtext.txt", "w")
+        spamfile = open("spamtext.txt", "w")
         print("Welcome to Autospammer, for fun only. Use at your risks.")
         time.sleep(0.5)
         print("Made with Python_")
@@ -24,7 +24,7 @@ def Register_AutoSpamInfo():
  
 Register_AutoSpamInfo()
    
-spamfileRead = open("/Users/lizhu/Tommy/Programming/Python/Other/spamtext.txt", "r")
+spamfileRead = open("spamtext.txt", "r")
 for msg in spamfileRead:
     pyautogui.typewrite(msg)
     pyautogui.press("enter")
