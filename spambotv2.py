@@ -26,3 +26,5 @@ def Register_AutoSpamInfo():
 Register_AutoSpamInfo()
 
 #TEST:testtesttesttest
+
+#V2 (LITE VERSION)
