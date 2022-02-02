@@ -1,7 +1,15 @@
 How to use-
-1.Install python
+V1:
+1.Install Python
 2.Install pyautogui using pip3 install
 3.create a file named spamtext.txt
 4.copy your file path and replace the "spamtext.txt" with it
 5.run
+6.Have fun !
+
+V2:
+ITS THE IMPROVED VERSION, IT TAKES LESS LINES OF CODE AND THE TXT FILE IS NO LONGER NEEDED.
+1.Install Python
+2.Install pyautogui using pip3 install
+3.run
 6.Have fun !
