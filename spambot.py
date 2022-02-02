@@ -3,7 +3,6 @@
 from subprocess import CompletedProcess
 import pyautogui
 import time
-time.sleep(0.5)
 
 def Register_AutoSpamInfo():
     while True:
