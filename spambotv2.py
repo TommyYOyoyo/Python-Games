@@ -16,8 +16,7 @@ def Register_AutoSpamInfo():
      print("SPAMMING STARTING IN 5 SECONDS! PLEASE PREPARE WELL!")
      time.sleep(5)
      for i in range(Spam_Times):
-         pyautogui.typewrite(Spam_Msg, interval=0.001)
-         pyautogui.press("enter")
+         pyautogui.typewrite(Spam_Msg+"\n", interval=0.00000000000000001)
      print("AUTOSPAM COMPLETED")
      pyautogui.typewrite("AUTOSPAM COMPLETED")
      pyautogui.press("enter")
