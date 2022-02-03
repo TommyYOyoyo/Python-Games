@@ -16,7 +16,7 @@ def Register_AutoSpamInfo():
         Spam_Msg = str(input("What message would you like to spam?  Message : "))
         Spam_Times = int(input("How many times would you spam this message? Count : "))
         for i in range(Spam_Times):
-            spamfile.write(Spam_Msg)
+            spamfile.write(Spam_Msg, interval=0.001)
             spamfile.write("\n")
         print("SPAMMING STARTING IN 5 SECONDS! PLEASE PREPARE WELL!")
         time.sleep(5)
