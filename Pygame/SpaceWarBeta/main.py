@@ -504,7 +504,7 @@ def main():
     win = pygame.display.set_mode((Width, Height))
     FPS = 200
     lives = 5
-    level = 5
+    level = 1
     clock = pygame.time.Clock()
     run = True
     main_font = pygame.font.Font("Assets/PixelOperator.ttf", 50)
