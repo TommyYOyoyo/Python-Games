@@ -1,0 +1,130 @@
+html{
+    /*background-color:#000000;*/
+    background-image: url("https://images.pexels.com/photos/3377405/pexels-photo-3377405.jpeg?cs=srgb&dl=pexels-el%C4%ABna-ar%C4%81ja-3377405.jpg&fm=jpg");
+    background-repeat: no-repeat;
+    background-position:center;
+    background-size: cover;
+    background-attachment: fixed;
+}
+#myTitle{
+    font-family:"Courier New", monospace;
+    color:white;
+    border-right: 5px solid black;
+    border-radius:5px;
+    padding:5px;
+    width:100px;
+}
+#myClock{
+    position: absolute;
+    display:flex;
+
+    border:1px solid;
+    border-color:#FFFFFF;
+    border-width: 3px;
+    border-radius:25px;
+
+    text-align: center;
+
+    padding:15px;
+    font-size:100px;
+    font-family:"Didot";
+    color:white;
+    width:500px;
+    justify-content:center;
+    top:35%;
+    left:29%;
+}
+#APlabel{
+    position: absolute;
+    display:flex;
+
+    text-align: center;
+
+    padding:15px;
+    font-size:25px;
+    font-family:"Didot";
+    color:white;
+    width:500px;
+    justify-content:center;
+    top:34%;
+    left:29%;
+}
+#myDate{
+    position: absolute;
+    display:flex;
+
+    text-align: center;
+
+    padding:15px;
+    font-size:20px;
+    font-family:"Arial";
+    color:white;
+    width:500px;
+    justify-content:center;
+    top:50%;
+    left:28.5%;
+    margin:10px;
+}
+#myName{
+    position: absolute;
+    font-family: "Aldrich";
+    font-size:10px;
+    width:200px;
+    color:white;
+    top:30px;
+    left:10px;
+    text-align:center;
+}
+
+#myPfp{
+    position: absolute;
+    width:30px;
+    height:30px;
+    border:1px solid;
+    border-radius:50px;
+    border-color:#000000;
+    text-align:center;
+    top:20px;
+    left:0px;
+    transition:
+        border-top-color 0.35s,
+        border-right-color 0.65s,
+        border-bottom-color 0.95s,
+        border-left-color 1.25s;
+}
+
+.container{
+    position:absolute;
+    width:100px;
+    height:20px;
+    top:90%;
+    left:85%;
+}
+
+#myPfp:hover{
+    border-top-color:gold;
+    border-right-color:gold;
+    border-bottom-color:gold;
+    border-left-color:gold;
+}
+
+#changeFormat{
+    position:absolute;
+    width:60px;
+    height:60px;
+    background-color:rgba(67, 67, 67, 0.405);
+    border:3px solid white;
+    text-align:center;
+    top:3%;
+    left:93%;
+    border-radius:10px;
+    color:white;
+}
+
+#changeFormat:hover{
+    background-color:gray;
+}
+
+#changeFormat:active{
+    background-color:black;
+}
