@@ -1,15 +1,7 @@
-How to use-
-V1:
-1.Install Python
-2.Install pyautogui using pip3 install
-3.create a file named spamtext.txt
-4.copy your file path and replace the "spamtext.txt" with it
-5.run
-6.Have fun !
+How to use SpamBot V2:
 
-V2:
-ITS THE IMPROVED VERSION, IT TAKES LESS LINES OF CODE AND THE TXT FILE IS NO LONGER NEEDED.
-1.Install Python
-2.Install pyautogui using pip3 install
-3.run
-6.Have fun !
+1. Install Python.
+2. Install pyautogui using the command "pip3 install pyautogui" in the terminal.
+3. Run "spambotv2.py" in the terminal using the following command: "python3 <FILE_PATH>".
+   *Don't forget to replace the <FILE_PATH> with the path of the file "spambotv2.py" on your computer.
+4. Have fun!
