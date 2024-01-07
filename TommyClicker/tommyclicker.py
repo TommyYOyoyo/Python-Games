@@ -35,8 +35,8 @@ def pressing():
 def start():
     if startBtn['text'] == "Start":
         startBtn.config(text="AutoClicking...")
-        timingLabel.config(text="seconds before the next click(random choosing)")
-        repeatTLabel.config(text="repeat times")
+        timingLabel.config(text=" seconds before the next click (random)")
+        repeatTLabel.config(text=" repeat times")
         autoclick()
 
 def autoclick():
@@ -110,12 +110,12 @@ repeatTimes = Entry(frame, width=10)
 repeatTLabel = Label(frame, text="repeat times")
 
 timing = Entry(win, width=10)
-timingLabel = Label(win, text="seconds before the next click(random choosing)")
+timingLabel = Label(win, text=" seconds before the next click (random)")
 toLabel = Label(win, text="to")
 timing2 = Entry(win, width=10)
 
-shortcutLabel = Label(frame, text="shortcut(PLEASE DONT ENTER A SPECIAL CHARACTER):")
-shortcutBtn = Button(frame, text="choose shortcut/hotkey", command=hotkeySwitch, width=15)
+shortcutLabel = Label(frame, text=" shortcut (Please do not enter a special character):")
+shortcutBtn = Button(frame, text=" choose shortcut/hotkey", command=hotkeySwitch, width=15)
 
 repeatTimes.grid(row=0, column=0, columnspan=2)
 repeatTLabel.grid(row=0, column=4)
