@@ -43,8 +43,8 @@ public class MathEvaluator {
 
         char[] characters = expression.replaceAll("\\s+", "").toCharArray(); // remove whitespaces and convert the characters into an array
 
-        List<String> output = new ArrayList<String>();
-        Stack<Character> ops = new Stack<Character>();
+        List<String> output = new ArrayList<>();
+        Stack<Character> ops = new Stack<>();
 
         for (int i = 0; i < characters.length; i++) {
 
@@ -94,7 +94,7 @@ public class MathEvaluator {
     // evaluating the postfix expression
     public static double postfixEval(List<String> postfix) {
 
-        Stack<Double> stack = new Stack<Double>();
+        Stack<Double> stack = new Stack<>();
 
         for (String element : postfix) {
             int prec = getPrecedence(element.charAt(0));
